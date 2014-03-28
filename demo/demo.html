@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>Carouse Demo</title>
+	<style type="text/css">
+		.wrap {
+			width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: 100px;
+		}
+
+		.carousel-wrapper {
+			width: 900px;
+			overflow: hidden;
+		}
+
+		.carousel-list {
+			overflow: hidden;
+			list-style: none;
+		}
+
+		.carousel-list .carousel-item {
+			float: left;
+		}
+
+		.control {
+			text-align: center;
+			margin-top: 20px;
+		}
+	</style>
+	<script src="jquery-2.0.3.js"></script>
+	<script src="../src/jquery.carousel.js"></script>
+	<script>
+		$(function() {
+			$('#js-carouse').carousel({
+				initCallback: function($children) {
+					var _this = this;
+					$children.on('click', function(e) {
+						e.stopPropagation();
+						var $this = $(this);
+						$this.animate({
+							'width': 2 * _this.opts.itemWidth,
+						});
+						$this.width(2 * _this.opts.itemWidth);
+
+						$(document).on('click', function() {
+							$children.animate({
+								'width': _this.opts.itemWidth,
+							});
+						});
+
+					});
+				}
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="wrap">
+		<div class="carousel-wrapper" id="js-carouse">
+			<ul class="carousel-list">
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl1.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl2.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl3.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl4.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl5.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl6.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl7.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl8.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl8.jpg"></a></li>
+				<li class="carousel-item"><a href="javascript:"><img src="img/owl8.jpg"></a></li>
+			</ul>
+			<div class="control">
+				<input type="button" value="prev" class="carousel-prev-page">
+				<input type="button" value="next" class="carousel-next-page">
+			</div>
+		</div>
+	</div>
+</body>
+</html>
