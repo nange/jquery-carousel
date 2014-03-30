@@ -50,7 +50,6 @@
 		$el.css({
 			'width': itemWidth * $children.length * 2,
 			'display': 'block',
-			'padding': 0,
 			'transition': 'all ' + opts.pageSpeed + 'ms' + ' ease',
 			'transform': 'translate3d(0px, 0px, 0px)'
 		});
@@ -68,7 +67,26 @@
 		opts.initCallback.call(_this, $children);
 	};
 
-	Carousel.prototype.to = function() {
+	Carousel.prototype.to = function(index) {
+		var _this = this,
+			$el = _this.$el,
+			opts = _this.opts;
+
+		$el.css('transform', 'translate3d(' + -(opts.itemWidth * index) + 'px, 0px, 0px)');
+
+		var $children = $el.children();
+		$children.removeClass(opts.prevCarousel)
+						 .removeClass(opts.nextCarousel);
+
+		if (index >= opts.showItemNum ) {
+			$children.eq(index - opts.showItemNum).addClass(opts.prevCarousel);
+		} else {
+			$children.eq(0).addClass(opts.prevCarousel);
+		}
+
+		if (index + opts.showItemNum <= $children.length) {
+			$children.eq(index + opts.showItemNum).addClass(opts.nextCarousel);
+		}
 
 	};
 
@@ -111,6 +129,8 @@
 		if (prevIndex >= opts.showItemNum ) {
 			$prevCarousel.removeClass(opts.prevCarousel);
 			$children.eq(prevIndex - opts.showItemNum).addClass(opts.prevCarousel);
+		} else {
+			$children.eq(0).addClass(opts.prevCarousel);
 		}
 
 		$children.removeClass(opts.nextCarousel);

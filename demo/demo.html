@@ -4,15 +4,19 @@
 	<meta charset="utf8">
 	<title>Carouse Demo</title>
 	<style type="text/css">
+		* {
+			padding: 0;
+		}
+
 		.wrap {
-			width: 960px;
+			width: 1200px;
 			margin-left: auto;
 			margin-right: auto;
 			margin-top: 100px;
 		}
 
 		.carousel-wrapper {
-			width: 900px;
+			width: 100%;
 			overflow: hidden;
 		}
 
@@ -32,30 +36,7 @@
 	</style>
 	<script src="jquery-2.0.3.js"></script>
 	<script src="../src/jquery.carousel.js"></script>
-	<script>
-		$(function() {
-			$('#js-carouse').carousel({
-				initCallback: function($children) {
-					var _this = this;
-					$children.on('click', function(e) {
-						e.stopPropagation();
-						var $this = $(this);
-						$this.animate({
-							'width': 2 * _this.opts.itemWidth,
-						});
-						$this.width(2 * _this.opts.itemWidth);
-
-						$(document).on('click', function() {
-							$children.animate({
-								'width': _this.opts.itemWidth,
-							});
-						});
-
-					});
-				}
-			});
-		});
-	</script>
+	<script src="demo.js"></script>
 </head>
 <body>
 	<div class="wrap">
