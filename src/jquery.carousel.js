@@ -19,6 +19,7 @@
 		this.opts = options;
 		this.$el = $(el).children(options.carouselListSel);
 		this.$wrap = $(el);
+		this.transitionendEvent = getTransitionEndEvent();
 		this.init();
 	};
 
@@ -39,20 +40,32 @@
 			opts = _this.opts;
 
 		var $children = $el.children(),
-			$parent = $el.parent(),
 			itemWidth;
 
-		opts.showItemNum !== 'auto' || 
-			(opts.showItemNum = Math.round($parent.width() / $children.eq(0).width()));
+		if (opts.showItemNum === 'auto') {
+			opts.showItemNum = Math.round(_this.$wrap.width() / $children.eq(0).outerWidth());
+		}
 
-		itemWidth = $el.parent().width() / opts.showItemNum;
+		itemWidth = _this.$wrap.width() / opts.showItemNum;
 		opts.itemWidth = itemWidth;
+
+		_this.$wrap.css('overflow', 'hidden');
 		$el.css({
 			'width': itemWidth * $children.length * 2,
 			'display': 'block',
-			'transition': 'all ' + opts.pageSpeed + 'ms' + ' ease',
-			'transform': 'translate3d(0px, 0px, 0px)'
+			'position': 'relative'
 		});
+		if (_this.transitionendEvent) {
+			$el.css({
+				'transition': 'all ' + opts.pageSpeed + 'ms' + ' ease',
+				'transform': 'translate3d(0px, 0px, 0px)'
+			});
+		} else {
+			$el.css({
+				'left': 0
+			});
+		}
+
 		$el.children().css({
 			'width': itemWidth
 		});
@@ -64,7 +77,7 @@
 		_this.$wrap.find(opts.nextPageSel).on('click.carousel', $.proxy(_this.nextPage, _this));
 		_this.$wrap.find(opts.prevPageSel).on('click.carousel', $.proxy(_this.prevPage, _this));
 
-		opts.initCallback.call(_this, $children);
+		$.isFunction(opts.initCallback) && opts.initCallback.call(_this, $children);
 	};
 
 	Carousel.prototype.to = function(index) {
@@ -72,11 +85,15 @@
 			$el = _this.$el,
 			opts = _this.opts;
 
-		$el.css('transform', 'translate3d(' + -(opts.itemWidth * index) + 'px, 0px, 0px)');
+		if (_this.transitionendEvent) {
+			$el.css('transform', 'translate3d(' + -(opts.itemWidth * index) + 'px, 0px, 0px)');
+		} else {
+			$el.animate({'left': -(opts.itemWidth * index)}, opts.pageSpeed);
+		}
 
 		var $children = $el.children();
 		$children.removeClass(opts.prevCarousel)
-						 .removeClass(opts.nextCarousel);
+				 .removeClass(opts.nextCarousel);
 
 		if (index >= opts.showItemNum ) {
 			$children.eq(index - opts.showItemNum).addClass(opts.prevCarousel);
@@ -101,7 +118,11 @@
 		if (!$nextCarousel.length) return;
 
 		var nextIndex = $children.index($nextCarousel);
-		$el.css('transform', 'translate3d(' + -(opts.itemWidth * nextIndex) + 'px, 0px, 0px)');
+		if (_this.transitionendEvent) {
+			$el.css('transform', 'translate3d(' + -(opts.itemWidth * nextIndex) + 'px, 0px, 0px)');
+		} else {
+			$el.animate({'left': -(opts.itemWidth * nextIndex)}, opts.pageSpeed);
+		}
 
 		if (nextIndex + opts.showItemNum <= $children.length) {
 			$nextCarousel.removeClass(opts.nextCarousel);
@@ -124,7 +145,11 @@
 		if (!$prevCarousel.length) return;
 
 		var prevIndex = $children.index($prevCarousel);
-		$el.css('transform', 'translate3d(' + -(opts.itemWidth * prevIndex) + 'px, 0px, 0px)');
+		if (_this.transitionendEvent) {
+			$el.css('transform', 'translate3d(' + -(opts.itemWidth * prevIndex) + 'px, 0px, 0px)');
+		} else {
+			$el.animate({'left': -(opts.itemWidth * prevIndex)}, opts.pageSpeed);
+		}
 
 		if (prevIndex >= opts.showItemNum ) {
 			$prevCarousel.removeClass(opts.prevCarousel);
@@ -138,6 +163,22 @@
 
 	};
 
+	function getTransitionEndEvent() {
+	    var t;
+	    var el = document.createElement('div');
+	    var transitions = {
+	        'transition':'transitionend',
+	        'OTransition':'oTransitionEnd',
+	        'MozTransition':'transitionend',
+	        'WebkitTransition':'webkitTransitionEnd'
+	    }
+
+	    for(t in transitions){
+	        if(el.style[t] !== undefined) {
+	            return transitions[t];
+	        }
+	    }
+	}
 
 	$.fn.carousel = function (option) {
       var options = $.extend({}, Carousel.DEFAULTS, typeof option == 'object' && option);

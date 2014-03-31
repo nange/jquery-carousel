@@ -1,5 +1,6 @@
 $(function() {
-	$('#js-carouse').carousel({
+	$('.carousel-wrapper').carousel({
+		showItemNum		: 4,
 		initCallback: function($children) {
 			var _this = this;
 
