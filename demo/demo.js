@@ -1,7 +1,7 @@
 $(function() {
 	$('.carousel-wrapper').carousel({
 		showItemNum		: 4,
-		initCallback: function($children) {
+		afterInit: function($children) {
 			var _this = this;
 
 			$children.on('click', function(e) {
