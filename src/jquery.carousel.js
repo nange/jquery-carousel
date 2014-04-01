@@ -29,6 +29,7 @@
 		screenType		: 'destop',
 		nextCarousel	: 'next-carousel',
 		prevCarousel	: 'prev-carousel',
+		activeClass		: 'active-carousel',
 		carouselListSel : '.carousel-list',
 		nextPageSel		: '.carousel-next-page',
 		prevPageSel		: '.carousel-prev-page',
@@ -61,6 +62,7 @@
 			if (_this._getScreenType() === opts.responsiveType[0]) {
 				opts.showItemNum = opts.destopShowItem;
 				opts.screenType = opts.responsiveType[0];
+
 			} else if (_this._getScreenType() === opts.responsiveType[1]) {
 				opts.showItemNum = opts.tabletShowItem;
 				opts.screenType = opts.responsiveType[1];
@@ -89,16 +91,11 @@
 			});
 		}
 
-		$el.children().css({
+		$children.css({
 			'width': itemWidth
 		});
 
-		if ($children.length >= opts.showItemNum * 2) {
-			$children.eq(opts.showItemNum).addClass(opts.nextCarousel);
-		} else {
-			var nextIdnex = $children.length - opts.showItemNum;
-			nextIdnex > 0 && $children.eq(nextIdnex).addClass(opts.nextCarousel);
-		}
+		$children.eq(0).addClass(opts.activeClass);
 
 		_this.$wrap.find(opts.nextPageSel).on('click.carousel', $.proxy(_this.nextPage, _this));
 		_this.$wrap.find(opts.prevPageSel).on('click.carousel', $.proxy(_this.prevPage, _this));
@@ -138,32 +135,15 @@
 			$el = _this.$el,
 			opts = _this.opts;
 
-		var $nextCarousel = $el.find('.' + opts.nextCarousel),
-			$children = $el.children();
+		var newActiveIndex = _this._setActivePosition('next');
 
-		if (!$nextCarousel.length) return;
-
-		var nextIndex = $children.index($nextCarousel);
 		if (_this.transitionendEvent) {
-			$el.css('transform', 'translate3d(' + -(opts.itemWidth * nextIndex) + 'px, 0px, 0px)');
+			$el.css('transform', 'translate3d(' + -(opts.itemWidth * newActiveIndex) + 'px, 0px, 0px)');
 		} else {
-			$el.animate({'left': -(opts.itemWidth * nextIndex)}, opts.pageSpeed);
+			$el.animate({'left': -(opts.itemWidth * newActiveIndex)}, opts.pageSpeed);
 		}
 
-		$nextCarousel.removeClass(opts.nextCarousel);
-		$children.removeClass(opts.prevCarousel);
-		if (nextIndex + opts.showItemNum <= $children.length) {
-			$children.eq(nextIndex + opts.showItemNum).addClass(opts.nextCarousel);
-			nextIndex <= opts.showItemNum && $children.eq(0).addClass(opts.prevCarousel);
-		} else {
-			$children.eq($children.length - opts.showItemNum).addClass(opts.nextCarousel);
-			var preIndex = $children.length - opts.showItemNum * 2;
-			if (preIndex >= 0) {
-				$children.eq(preIndex).addClass(opts.prevCarousel);
-			}
-		}
-
-		$.isFunction(opts.afterNext) && opts.afterNext.call(_this, $children);
+		$.isFunction(opts.afterNext) && opts.afterNext.call(_this);
 
 	};
 
@@ -172,36 +152,52 @@
 			$el = _this.$el,
 			opts = _this.opts;
 
-		var $prevCarousel = $el.find('.' + opts.prevCarousel),
-			$children = $el.children();
+		var newActiveIndex = _this._setActivePosition('prev');
 
-		if (!$prevCarousel.length) return;
-
-		var prevIndex = $children.index($prevCarousel);
 		if (_this.transitionendEvent) {
-			$el.css('transform', 'translate3d(' + -(opts.itemWidth * prevIndex) + 'px, 0px, 0px)');
+			$el.css('transform', 'translate3d(' + -(opts.itemWidth * newActiveIndex) + 'px, 0px, 0px)');
 		} else {
-			$el.animate({'left': -(opts.itemWidth * prevIndex)}, opts.pageSpeed);
-		}
-
-		if (prevIndex >= opts.showItemNum ) {
-			$prevCarousel.removeClass(opts.prevCarousel);
-			$children.eq(prevIndex - opts.showItemNum).addClass(opts.prevCarousel);
-		} else {
-			$children.eq(0).addClass(opts.prevCarousel);
-		}
-
-
-		$children.removeClass(opts.nextCarousel);
-		if ($children.length < opts.showItemNum * 2) {
-			var nextIndex = $children.length - opts.showItemNum;
-			$children.eq(nextIndex).addClass(opts.nextCarousel);
-
-		} else {
-			$children.eq(prevIndex + opts.showItemNum).addClass(opts.nextCarousel);
+			$el.animate({'left': -(opts.itemWidth * newActiveIndex)}, opts.pageSpeed);
 		}
 
 		$.isFunction(opts.prevPrev) && opts.prevPrev.call(_this, $children);
+
+	};
+
+	Carousel.prototype._setActivePosition = function(type) {
+		var _this = this,
+			$el = _this.$el,
+			opts = _this.opts;
+
+		var $oldActive = $el.find('.' + opts.activeClass),
+			$children = $el.children(),
+			oldActiveIndex = $children.index($oldActive);
+
+		var newActiveIndex;
+		if (type === 'next') {
+			if (oldActiveIndex + opts.showItemNum >= $children.length) {
+				return oldActiveIndex;
+			}
+
+			$children.removeClass(opts.activeClass);
+			if (oldActiveIndex + opts.showItemNum * 2 <= $children.length) {
+				newActiveIndex = oldActiveIndex + opts.showItemNum;
+			} else {
+				newActiveIndex = $children.length % opts.showItemNum + oldActiveIndex;
+			}
+
+		} else if (type === 'prev') {
+			$children.removeClass(opts.activeClass);
+
+			if (oldActiveIndex - opts.showItemNum >= 0) {
+				newActiveIndex = oldActiveIndex - opts.showItemNum;
+			} else {
+				newActiveIndex = 0;
+			}
+		}
+
+		$children.eq(newActiveIndex).addClass(opts.activeClass);
+		return newActiveIndex;
 
 	};
 

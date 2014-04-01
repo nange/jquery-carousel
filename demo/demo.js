@@ -2,7 +2,8 @@ $(function() {
 	$('.carousel-wrapper').carousel({
 		showItemNum		: 4,
 		afterInit: function($children) {
-			var _this = this;
+			var _this = this,
+				$children = _this.$el.children();
 
 			$children.on('click', function(e) {
 				e.stopPropagation();
