@@ -27,8 +27,6 @@
 		pageSpeed		: 800,
 		showItemNum		: 'auto',
 		screenType		: 'destop',
-		nextCarousel	: 'next-carousel',
-		prevCarousel	: 'prev-carousel',
 		activeClass		: 'active-carousel',
 		carouselListSel : '.carousel-list',
 		nextPageSel		: '.carousel-next-page',
@@ -40,8 +38,7 @@
 		destopShowItem	: 5,
 		afterInit		: $.noop,
 		afterUpdate		: $.noop,
-		afterPrev		: $.noop,
-		afterNext		: $.noop
+		afterAnimate	: $.noop
 	};
 
 	Carousel.prototype.init = function() {
@@ -114,20 +111,12 @@
 			$el.animate({'left': -(opts.itemWidth * index)}, opts.pageSpeed);
 		}
 
-		var $children = $el.children();
-		$children.removeClass(opts.prevCarousel)
-				 .removeClass(opts.nextCarousel);
+		$el.children()
+		   .removeClass(opts.activeClass)
+		   .eq(index)
+		   .addClass(opts.activeClass);
 
-		if (index >= opts.showItemNum ) {
-			$children.eq(index - opts.showItemNum).addClass(opts.prevCarousel);
-		} else {
-			$children.eq(0).addClass(opts.prevCarousel);
-		}
-
-		if (index + opts.showItemNum <= $children.length) {
-			$children.eq(index + opts.showItemNum).addClass(opts.nextCarousel);
-		}
-
+		$.isFunction(opts.afterAnimate) && opts.afterAnimate.call(_this, index);
 	};
 
 	Carousel.prototype.nextPage = function() {
@@ -143,8 +132,7 @@
 			$el.animate({'left': -(opts.itemWidth * newActiveIndex)}, opts.pageSpeed);
 		}
 
-		$.isFunction(opts.afterNext) && opts.afterNext.call(_this);
-
+		$.isFunction(opts.afterAnimate) && opts.afterAnimate.call(_this, newActiveIndex);
 	};
 
 	Carousel.prototype.prevPage = function() {
@@ -160,8 +148,7 @@
 			$el.animate({'left': -(opts.itemWidth * newActiveIndex)}, opts.pageSpeed);
 		}
 
-		$.isFunction(opts.prevPrev) && opts.prevPrev.call(_this, $children);
-
+		$.isFunction(opts.afterAnimate) && opts.afterAnimate.call(_this, newActiveIndex);
 	};
 
 	Carousel.prototype._setActivePosition = function(type) {
@@ -183,7 +170,7 @@
 			if (oldActiveIndex + opts.showItemNum * 2 <= $children.length) {
 				newActiveIndex = oldActiveIndex + opts.showItemNum;
 			} else {
-				newActiveIndex = $children.length % opts.showItemNum + oldActiveIndex;
+				newActiveIndex = ($children.length - oldActiveIndex) % opts.showItemNum + oldActiveIndex;
 			}
 
 		} else if (type === 'prev') {
@@ -198,7 +185,6 @@
 
 		$children.eq(newActiveIndex).addClass(opts.activeClass);
 		return newActiveIndex;
-
 	};
 
 	Carousel.prototype.update = function() {
@@ -223,24 +209,19 @@
 			});
 		}
 
+		$el.css('width', itemWidth * $children.length * 2);
 		$children.css({
 			'width': itemWidth
 		});
-
-		$children.removeClass(opts.prevCarousel)
-				 .removeClass(opts.nextCarousel);
-
-		if ($children.length > opts.showItemNum) {
-			$children.eq(opts.showItemNum).addClass(opts.nextCarousel);
-		}
+		$children.eq(0).addClass(opts.activeClass);
 
 		$.isFunction(opts.afterUpdate) && opts.afterUpdate.call(_this, $children);
-
 	};
  
 	Carousel.prototype._onWindowResize = function() {
 		var _this = this,
-			opts = _this.opts;
+			opts = _this.opts,
+			st;
 
 		$(window).on('resize.carousel', function() {
 			var screenType = _this._getScreenType();
@@ -254,9 +235,11 @@
 				opts.screenType = opts.responsiveType[1];
 			}
 
-			_this.update();
+			clearTimeout(st);
+			st = setTimeout(function() {
+				_this.update();
+			}, 200);
 		});
-
 	};
 
 	Carousel.prototype._getScreenType = function() {
@@ -287,13 +270,14 @@
 	}
 
 	$.fn.carousel = function (option) {
-      var options = $.extend({}, Carousel.DEFAULTS, typeof option == 'object' && option);
-    
-      return this.each(function () {
+     
+      this.each(function () {
+      	var options = $.extend({}, Carousel.DEFAULTS, typeof option == 'object' && option);
         var $this = $(this);
         var data  = $this.data('carousel');
 
         if (!data) $this.data('carousel', new Carousel(this, options));
+        if (typeof option == 'string') data[option]();
 
       });
     }
